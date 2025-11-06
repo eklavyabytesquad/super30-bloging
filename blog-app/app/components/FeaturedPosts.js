@@ -19,7 +19,7 @@ export default function FeaturedPosts({ posts, loading }) {
   const fetchInteractions = async () => {
     try {
       const blogIds = posts.map(post => post.id);
-      
+
       const { data, error } = await supabase
         .from('interactions')
         .select('*')
@@ -27,7 +27,6 @@ export default function FeaturedPosts({ posts, loading }) {
 
       if (error) throw error;
 
-      // Group interactions by blog_id
       const groupedInteractions = {};
       data.forEach(interaction => {
         if (!groupedInteractions[interaction.blog_id]) {
@@ -52,20 +51,17 @@ export default function FeaturedPosts({ posts, loading }) {
 
   const handleLike = async (blogId) => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('interactions')
         .insert([
           {
             blog_id: blogId,
             is_liked: true
           }
-        ])
-        .select()
-        .single();
+        ]);
 
       if (error) throw error;
 
-      // Update local state
       setInteractions(prev => ({
         ...prev,
         [blogId]: {
@@ -102,7 +98,6 @@ export default function FeaturedPosts({ posts, loading }) {
 
       if (error) throw error;
 
-      // Update local state
       setInteractions(prev => ({
         ...prev,
         [blogId]: {
@@ -111,7 +106,6 @@ export default function FeaturedPosts({ posts, loading }) {
         }
       }));
 
-      // Reset form
       setCommentData(prev => ({ ...prev, [blogId]: { name: '', comment: '' } }));
       setShowCommentBox(prev => ({ ...prev, [blogId]: false }));
     } catch (err) {
@@ -145,174 +139,220 @@ export default function FeaturedPosts({ posts, loading }) {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
+      <div className="relative flex justify-center">
+        <div className="absolute inset-0 -z-10 h-56 max-w-xl rounded-full bg-blue-500/20 blur-3xl"></div>
+        <div className="flex justify-center items-center py-20">
+          <svg className="animate-spin h-12 w-12 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+        </div>
       </div>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <div className="text-center py-20 bg-white rounded-xl shadow-md border border-gray-200">
-        <svg className="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="relative overflow-hidden rounded-3xl border border-blue-100/60 bg-white/80 p-12 text-center shadow-xl shadow-blue-100/40 backdrop-blur">
+        <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/10 via-sky-400/10 to-indigo-500/10"></div>
+        <div className="absolute -top-12 -right-16 h-48 w-48 rounded-full bg-blue-500/20 blur-3xl"></div>
+        <div className="absolute -bottom-12 -left-16 h-48 w-48 rounded-full bg-sky-400/20 blur-3xl"></div>
+        <svg className="mx-auto mb-6 h-20 w-20 text-blue-500/60" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
-        <h3 className="text-2xl font-semibold text-gray-900 mb-2">No Posts Yet</h3>
-        <p className="text-gray-600 mb-6">Be the first to share your story!</p>
+        <h3 className="text-3xl font-bold text-gray-900">No posts yet</h3>
+        <p className="mt-2 text-base text-blue-900/70">Be the voice that starts the conversation. Share your first story with the community.</p>
         <Link
           href="/src/register"
-          className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg"
+          className="mt-6 inline-flex items-center gap-2 rounded-full bg-linear-to-r from-blue-600 via-sky-500 to-indigo-500 px-8 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:shadow-xl hover:-translate-y-0.5"
         >
           Start Writing
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
         </Link>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-      {posts.map((post) => (
-        <article
-          key={post.id}
-          className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow border border-gray-100"
-        >
-          {post.image_base64 ? (
-            <div className="h-48 relative overflow-hidden">
-              <img 
-                src={post.image_base64} 
-                alt={post.title}
-                className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
-              />
-              <div className="absolute inset-0 bg-black opacity-10"></div>
-              <div className="absolute top-4 right-4">
-                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {getFirstTag(post.reference)}
-                </span>
+    <div className="space-y-10">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+        {posts.map((post) => (
+          <article
+            key={post.id}
+            className="group relative overflow-hidden rounded-3xl border border-blue-100/50 bg-white/90 shadow-xl shadow-blue-100/40 backdrop-blur transition hover:-translate-y-1 hover:shadow-2xl"
+          >
+            <div className="absolute inset-0 -z-10 bg-linear-to-br from-blue-500/10 via-sky-400/10 to-indigo-500/10 opacity-0 transition duration-500 group-hover:opacity-100"></div>
+            <div className="absolute inset-x-0 top-0 h-1 bg-linear-to-r from-blue-500 via-sky-400 to-indigo-500"></div>
+
+            {post.image_base64 ? (
+              <div className="relative h-48 overflow-hidden">
+                <img
+                  src={post.image_base64}
+                  alt={post.title}
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-linear-to-b from-transparent via-blue-900/10 to-blue-900/40"></div>
+                <div className="absolute right-4 top-4">
+                  <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 shadow-md">
+                    {getFirstTag(post.reference)}
+                  </span>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="h-48 bg-gradient-to-br from-blue-400 to-blue-600 relative">
-              <div className="absolute inset-0 bg-black opacity-20"></div>
-              <div className="absolute top-4 right-4">
-                <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {getFirstTag(post.reference)}
-                </span>
+            ) : (
+              <div className="relative h-48 bg-linear-to-br from-blue-500 via-sky-400 to-indigo-500">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.35),_transparent_60%)]"></div>
+                <div className="absolute right-4 top-4">
+                  <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-700 shadow-md">
+                    {getFirstTag(post.reference)}
+                  </span>
+                </div>
+                <div className="absolute bottom-4 left-4 text-white/90">
+                  <span className="text-sm font-medium">Featured Story</span>
+                  <p className="text-lg font-semibold">{post.title}</p>
+                </div>
               </div>
-            </div>
-          )}
-          <div className="p-6">
-            {post.sub_title && (
-              <p className="text-sm font-medium text-blue-600 mb-1">{post.sub_title}</p>
             )}
-            <h3 className="text-xl font-bold text-gray-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2">
-              <Link href={`/blog/${post.id}`}>{post.title}</Link>
-            </h3>
-            <p className="text-gray-600 mb-4 line-clamp-3">
-              {truncateText(post.description, 120)}
-            </p>
-            <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
-              <span className="font-medium">{post.users?.full_name || 'Anonymous'}</span>
-              <span>{formatDate(post.created_at)}</span>
-            </div>
 
-            {/* Interactions Section */}
-            <div className="border-t border-gray-100 pt-4">
-              {/* Like and Comment Buttons */}
-              <div className="flex items-center justify-between mb-3">
-                <button
-                  onClick={() => handleLike(post.id)}
-                  className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-sm font-medium">
-                    {interactions[post.id]?.likes || 0} Likes
+            <div className="space-y-4 p-6">
+              {post.sub_title && (
+                <span className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-blue-600">
+                  {post.sub_title}
+                </span>
+              )}
+              <h3 className="text-xl font-bold text-gray-900 transition group-hover:text-blue-700">
+                <Link href={`/blog/${post.id}`}>{post.title}</Link>
+              </h3>
+              <p className="text-sm leading-relaxed text-gray-600 line-clamp-3">
+                {truncateText(post.description, 140)}
+              </p>
+              <div className="flex items-center justify-between text-sm text-gray-500">
+                <span className="flex items-center gap-2">
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700">
+                    {(post.users?.full_name || 'A')[0]?.toUpperCase() || 'A'}
                   </span>
-                </button>
-                <button
-                  onClick={() => setShowCommentBox(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
-                  className="flex items-center gap-2 px-3 py-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                  </svg>
-                  <span className="text-sm font-medium">
-                    {interactions[post.id]?.comments?.length || 0} Comments
-                  </span>
-                </button>
+                  <span className="font-medium text-gray-900">{post.users?.full_name || 'Anonymous'}</span>
+                </span>
+                <span>{formatDate(post.created_at)}</span>
               </div>
 
-              {/* Comment Box */}
-              {showCommentBox[post.id] && (
-                <div className="bg-gray-50 rounded-lg p-4 mb-3">
-                  <input
-                    type="text"
-                    placeholder="Your name"
-                    value={commentData[post.id]?.name || ''}
-                    onChange={(e) => setCommentData(prev => ({
-                      ...prev,
-                      [post.id]: { ...prev[post.id], name: e.target.value }
-                    }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <textarea
-                    placeholder="Write a comment..."
-                    value={commentData[post.id]?.comment || ''}
-                    onChange={(e) => setCommentData(prev => ({
-                      ...prev,
-                      [post.id]: { ...prev[post.id], comment: e.target.value }
-                    }))}
-                    rows={3}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg mb-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-                  />
-                  <div className="flex gap-2">
+              <div className="rounded-2xl border border-blue-100 bg-blue-50/60 p-4 transition group-hover:border-blue-200 group-hover:bg-blue-50">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
                     <button
-                      onClick={() => handleCommentSubmit(post.id)}
-                      disabled={submitting[post.id]}
-                      className="px-4 py-2 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      onClick={() => handleLike(post.id)}
+                      className="flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm shadow-blue-100 transition hover:bg-linear-to-r hover:from-blue-600 hover:to-indigo-500 hover:text-white"
                     >
-                      {submitting[post.id] ? 'Posting...' : 'Post Comment'}
+                      <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clipRule="evenodd" />
+                      </svg>
+                      {interactions[post.id]?.likes || 0}
                     </button>
                     <button
-                      onClick={() => setShowCommentBox(prev => ({ ...prev, [post.id]: false }))}
-                      className="px-4 py-2 bg-gray-200 text-gray-700 text-sm font-semibold rounded-lg hover:bg-gray-300 transition-colors"
+                      onClick={() => setShowCommentBox(prev => ({ ...prev, [post.id]: !prev[post.id] }))}
+                      className="flex items-center gap-2 rounded-full bg-white/70 px-4 py-2 text-sm font-semibold text-blue-600 shadow-sm shadow-blue-100 transition hover:bg-linear-to-r hover:from-blue-600 hover:to-indigo-500 hover:text-white"
                     >
-                      Cancel
+                      <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                      {interactions[post.id]?.comments?.length || 0}
                     </button>
                   </div>
+                  <Link
+                    href={`/blog/${post.id}`}
+                    className="inline-flex items-center gap-2 rounded-full bg-white/0 px-4 py-2 text-sm font-semibold text-blue-600 transition hover:bg-white/80"
+                  >
+                    Read More
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </Link>
                 </div>
-              )}
 
-              {/* Display Comments */}
-              {interactions[post.id]?.comments && interactions[post.id].comments.length > 0 && (
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {interactions[post.id].comments.slice(0, 2).map((comment) => (
-                    <div key={comment.id} className="bg-gray-50 rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-sm font-semibold text-gray-900">{comment.name}</span>
-                        <span className="text-xs text-gray-500">{formatDate(comment.created_at)}</span>
-                      </div>
-                      <p className="text-sm text-gray-600">{comment.comment_text}</p>
+                {showCommentBox[post.id] && (
+                  <div className="mt-4 space-y-3 rounded-2xl bg-white/80 p-4 shadow-sm shadow-blue-100">
+                    <input
+                      type="text"
+                      placeholder="Your name"
+                      value={commentData[post.id]?.name || ''}
+                      onChange={(e) => setCommentData(prev => ({
+                        ...prev,
+                        [post.id]: { ...prev[post.id], name: e.target.value }
+                      }))}
+                      className="w-full rounded-xl border border-blue-100/70 bg-white/70 px-4 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                    />
+                    <textarea
+                      placeholder="Share your thoughts..."
+                      value={commentData[post.id]?.comment || ''}
+                      onChange={(e) => setCommentData(prev => ({
+                        ...prev,
+                        [post.id]: { ...prev[post.id], comment: e.target.value }
+                      }))}
+                      rows={3}
+                      className="w-full resize-none rounded-xl border border-blue-100/70 bg-white/70 px-4 py-2 text-sm text-gray-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                    />
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => handleCommentSubmit(post.id)}
+                        disabled={submitting[post.id]}
+                        className="rounded-full bg-linear-to-r from-blue-600 via-sky-500 to-indigo-500 px-6 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/30 transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {submitting[post.id] ? 'Posting...' : 'Post Comment'}
+                      </button>
+                      <button
+                        onClick={() => setShowCommentBox(prev => ({ ...prev, [post.id]: false }))}
+                        className="rounded-full bg-white/70 px-6 py-2 text-sm font-semibold text-blue-600 transition hover:bg-white"
+                      >
+                        Cancel
+                      </button>
                     </div>
-                  ))}
-                  {interactions[post.id].comments.length > 2 && (
-                    <Link
-                      href={`/blog/${post.id}`}
-                      className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                    >
-                      View all {interactions[post.id].comments.length} comments
-                    </Link>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+
+                {interactions[post.id]?.comments && interactions[post.id].comments.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {interactions[post.id].comments.slice(0, 2).map((comment) => (
+                      <div key={comment.id} className="rounded-2xl bg-white/80 p-3 shadow-sm shadow-blue-100">
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-blue-700">{comment.name}</p>
+                            <p className="mt-1 text-sm text-gray-600">{comment.comment_text}</p>
+                          </div>
+                          <span className="text-xs text-blue-400">{formatDate(comment.created_at)}</span>
+                        </div>
+                      </div>
+                    ))}
+                    {interactions[post.id].comments.length > 2 && (
+                      <Link
+                        href={`/blog/${post.id}`}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-indigo-500"
+                      >
+                        View all {interactions[post.id].comments.length} comments
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-        </article>
-      ))}
+          </article>
+        ))}
+      </div>
+
+      <div className="flex justify-center">
+        <Link
+          href="/blog"
+          className="inline-flex items-center gap-3 rounded-full border border-blue-200 bg-white/80 px-8 py-3 text-sm font-semibold text-blue-600 shadow-lg shadow-blue-100 transition hover:bg-linear-to-r hover:from-blue-600 hover:to-indigo-500 hover:text-white"
+        >
+          Discover more stories
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </Link>
+      </div>
     </div>
   );
 }
