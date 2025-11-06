@@ -1,8 +1,11 @@
+'use client';
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navbar";
 import Footer from "./components/footer";
 import { AuthProvider } from "./src/utils/auth_context";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,10 +17,30 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
-  title: "BlogHub - Your Blogging Platform",
-  description: "Discover amazing stories, insights, and ideas from our community",
-};
+function LayoutContent({ children }) {
+  const pathname = usePathname();
+  
+  // Check if the current path is a dashboard route
+  const isDashboardRoute = pathname?.startsWith('/src/dashboard') || 
+                          pathname?.startsWith('/my-posts') || 
+                          pathname?.startsWith('/create-post') ||
+                          pathname?.startsWith('/categories') ||
+                          pathname?.startsWith('/analytics') ||
+                          pathname?.startsWith('/comments') ||
+                          pathname?.startsWith('/settings') ||
+                          pathname?.startsWith('/help') ||
+                          pathname?.startsWith('/admin');
+
+  return (
+    <>
+      {!isDashboardRoute && <Navbar />}
+      <main className={!isDashboardRoute ? "min-h-screen" : ""}>
+        {children}
+      </main>
+      {!isDashboardRoute && <Footer />}
+    </>
+  );
+}
 
 export default function RootLayout({ children }) {
   return (
@@ -26,11 +49,7 @@ export default function RootLayout({ children }) {
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <AuthProvider>
-          <Navbar />
-          <main className="min-h-screen">
-            {children}
-          </main>
-          <Footer />
+          <LayoutContent>{children}</LayoutContent>
         </AuthProvider>
       </body>
     </html>
